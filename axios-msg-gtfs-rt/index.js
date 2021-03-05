@@ -111,7 +111,6 @@ async function run() {
     const res=await axios.post(
 	'http://localhost:3000/user',
 	//'https://dedriver.org/gtfs/realtime',
-	//'http://127.0.0.1:42003/realtime',
 	encodedPost,
 	{
 	    headers:{
