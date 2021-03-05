@@ -17,7 +17,7 @@ async function run() {
     const root = await protobuf.load(protoFile);
     //const User = root.lookupType('userpackage.User');
     const FeedMessage = root.lookupType("transit_realtime.FeedMessage");
-
+/*
     //HTTP GET
     let dataGet = await axios.get(
 	'http://localhost:3000/user',
@@ -38,31 +38,57 @@ async function run() {
     const dataDecoded=FeedMessage.decode(dataBuffered);
     debug('dataDecoded len: %s',dataDecoded.length)
     debug('decoded data in JSON: %s', JSON.stringify(dataDecoded))
-    
+*/
+
     //HTTP POST
     const FeedHeader = root.lookupType("transit_realtime.FeedHeader");
     const FeedEntity = root.lookupType("transit_realtime.FeedEntity");
     const VehiclePosition = root.lookupType("transit_realtime.VehiclePosition");
     const Position = root.lookupType("transit_realtime.Position");
+    const VehicleDescriptor = root.lookupType("transit_realtime.VehicleDescriptor");
 
-    var pos = Position.create({latitude:37.79192,longitude:-122.39087});
+    const vehDes=VehicleDescriptor.create(
+	{
+	    id:'id',
+	    label:'label',
+	    licensePlate:'license_plate'
+	}
+    )
+
+    const pos = Position.create({latitude:37.79192,longitude:-122.39087});
     debug('pos created')
     debug("pos JSON: %s", JSON.stringify(pos));
 
-    //TODO Why does Position msg not work? Is it converted on transmission?
-//ERROR    var vehiclePosition = VehiclePosition.create({position:pos});
-    //var vehiclePosition = VehiclePosition.create();
-    var vehiclePosition = VehiclePosition.create({position:pos});
+    const ts=Date.now()
+    debug('ts: %s',ts)
+    const vehiclePosition = VehiclePosition.create(
+	{
+	    vehicle:vehDes,
+	    position:pos,
+	    timestamp:ts});
     debug('vehiclePosition created')
 
-    var feedEntity=FeedEntity.create({id:'uuid-axios',vehicle:vehiclePosition});
+    var feedEntity=FeedEntity.create(
+	{
+	    vehicle:vehiclePosition
+	}
+    )
     debug('feedEntity created')
 
-    var feedHeader = FeedHeader.create({gtfsRealtimeVersion:'2.0',
-    incrementality:0});
+    var feedHeader = FeedHeader.create(
+	{
+	    gtfsRealtimeVersion:'2.0',
+	    incrementality:0
+	}
+    )
     debug('feedHeader created')
 
-    var feedMessage = FeedMessage.create({header:feedHeader,entity:[feedEntity,feedEntity]});
+    var feedMessage = FeedMessage.create(
+	{
+	    header:feedHeader,
+	    entity:[feedEntity]
+	}
+    )
     debug('feedMessage created')
     debug("JSON: %s", JSON.stringify(feedMessage));
 
@@ -84,6 +110,8 @@ async function run() {
     //response is returned
     const res=await axios.post(
 	'http://localhost:3000/user',
+	//'https://dedriver.org/gtfs/realtime',
+	//'http://127.0.0.1:42003/realtime',
 	encodedPost,
 	{
 	    headers:{
